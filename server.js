@@ -25,9 +25,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:3000'];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin (like Postman)
+    // allow requests with no origin (Postman, curl)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
@@ -39,10 +39,13 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // ✅ SAME config for preflight
+
 
 // 👇 THIS LINE FIXES PREFLIGHT ISSUES
-app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
