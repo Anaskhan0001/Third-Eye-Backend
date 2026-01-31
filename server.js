@@ -1,3 +1,7 @@
+app.get('/', (req, res) => {
+  res.send('Third Eye Backend is running 🚀');
+});
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
