@@ -1,7 +1,3 @@
-app.get('/', (req, res) => {
-  res.send('Third Eye Backend is running 🚀');
-});
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -16,28 +12,28 @@ const adminRoutes = require('./routes/adminRoutes');
 // Initialize app
 const app = express();
 
-// Verify environment variables
+// Check env
 if (!process.env.JWT_SECRET) {
-  console.warn('⚠️  WARNING: JWT_SECRET not set in .env file');
+  console.warn('⚠️ JWT_SECRET not set');
 }
 
-// Connect to database
+// Connect DB
 connectDB();
 
-// Middleware
+// Allowed origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:3000'];
 
+// CORS config
 const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin (Postman, curl)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
+      callback(null, true);
     } else {
-      return callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
@@ -45,16 +41,18 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
+// Middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // ✅ SAME config for preflight
-
-
-// 👇 THIS LINE FIXES PREFLIGHT ISSUES
-
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API Routes
+// Root route
+app.get('/', (req, res) => {
+  res.send('Third Eye Backend is running 🚀');
+});
+
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/contact', contactRoutes);
@@ -65,26 +63,25 @@ app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Server is running' });
 });
 
-// Error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
-  res.status(err.status || 500).json({
+  console.error(err.message);
+  res.status(500).json({
     success: false,
-    message: process.env.NODE_ENV === 'production' ? 'Server error' : err.message
+    message:
+      process.env.NODE_ENV === 'production'
+        ? 'Server error'
+        : err.message,
   });
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(`Server running on port ${PORT} in production mode`);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
+  server.close(() => process.exit(0));
 });
