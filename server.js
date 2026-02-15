@@ -20,35 +20,6 @@ if (!process.env.JWT_SECRET) {
 // Connect DB
 connectDB();
 
-const User = require('./models/User');
-
-const createAdmin = async () => {
-  try {
-    const existingAdmin = await User.findOne({ role: 'admin' });
-
-    if (!existingAdmin) {
-      const admin = new User({
-        name: "Admin",
-        email: "admin@thirdeye.com",
-        password: "Admin@786!",
-        phone: "7860202563",
-        role: "admin"
-      });
-
-      await admin.save();
-      console.log("Admin created in production DB");
-    } else {
-      console.log("Admin already exists in production DB");
-    }
-
-  } catch (error) {
-    console.log("Admin creation error:", error.message);
-  }
-};
-
-createAdmin();
-
-
 // Allowed origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
